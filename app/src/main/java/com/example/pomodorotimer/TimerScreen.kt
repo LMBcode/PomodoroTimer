@@ -99,8 +99,6 @@ fun CircularProgressBar(
     radius: Dp = 50.dp,
     color: Color = normalPurple,
     strokeWidth : Dp = 4.dp,
-    animDuration : Int = 60000,
-    animDelay : Int = 0,
 ){
     var animationPlayed by remember {
         mutableStateOf(false)
@@ -111,10 +109,6 @@ fun CircularProgressBar(
 
     LaunchedEffect(key1 = true){
         animationPlayed = true
-    }
-
-    val indicatorOffset = with(LocalDensity.current) {
-        (radius - strokeWidth / 2).toPx()
     }
 
 

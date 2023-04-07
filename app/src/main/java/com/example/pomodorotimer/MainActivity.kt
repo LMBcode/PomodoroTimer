@@ -10,6 +10,8 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+import com.example.pomodorotimer.navigation.BottomNav
 import com.example.pomodorotimer.ui.theme.StripeTheme
 
 class MainActivity : ComponentActivity() {
@@ -17,32 +19,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             StripeTheme {
-                // A surface container using the 'background' color from the theme
+                val navController = rememberNavController()
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    TimerScreen(
-                        text = "",
-                        onValueChange = {} ,
-                        onSearch = { },
-                        onFocusChanged = {}
-                    )
+                    BottomNav()
                 }
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    StripeTheme {
-        Greeting("Android")
-    }
-}
