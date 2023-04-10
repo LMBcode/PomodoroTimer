@@ -22,9 +22,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pomodorotimer.presentation.CountDownViewModel
 import com.example.pomodorotimer.presentation.Time.secondsToMMSS
+import com.example.pomodorotimer.presentation.TimerViewModel
 import com.example.pomodorotimer.ui.theme.*
 import java.lang.Math.*
 import kotlin.math.cos
@@ -33,14 +35,20 @@ import kotlin.math.sin
 @Composable
 fun TimerScreen(
     modifier: Modifier = Modifier,
-     countDownViewModel: CountDownViewModel = viewModel()
+     countDownViewModel: CountDownViewModel = viewModel(),
+    timerViewModel : TimerViewModel = hiltViewModel()
 ){
     val spacing = LocalSpacing.current
     val countDownViewModelState = countDownViewModel.countDownState.collectAsState()
 
+    val defaultTimer = timerViewModel.getTimer()  * 60 // Timer is in minutes , basically if timerViewModel.getTimer is equal to 25 , we should convert 25 minutes into seconds
 
-    val countDownPercentage = countDownViewModelState.value.toFloat() / 60f
+
+    val countDownPercentage = countDownViewModelState.value.toFloat() / defaultTimer
+
     var isPlaying by remember{ mutableStateOf(false)}
+
+
     
     Column(
         modifier = Modifier
@@ -70,7 +78,7 @@ fun TimerScreen(
             onClick = {
                 isPlaying = !isPlaying
                 if (isPlaying) {
-                    countDownViewModel.startCountdown()
+                    countDownViewModel.startCountdown(defaultTimer)
                 } else {
                     countDownViewModel.pauseCountdown()
                 }
@@ -87,6 +95,23 @@ fun TimerScreen(
             )
         }
 
+        IconButton(
+            onClick = {
+                isPlaying = !isPlaying
+                countDownViewModel.resetCountdown(defaultTimer)
+            },
+            modifier = Modifier
+                .background(normalPurple, shape = CircleShape)
+                .padding(4.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.RestartAlt,
+                contentDescription = "Reset Timer",
+                tint = Color.White
+            )
+        }
+
+
 
     }
 }
@@ -100,16 +125,6 @@ fun CircularProgressBar(
     color: Color = normalPurple,
     strokeWidth : Dp = 4.dp,
 ){
-    var animationPlayed by remember {
-        mutableStateOf(false)
-    }
-
-    val curPercentage = remember { mutableStateOf(percentage) }
-
-
-    LaunchedEffect(key1 = true){
-        animationPlayed = true
-    }
 
 
     Box(
@@ -141,7 +156,7 @@ fun CircularProgressBar(
         }
 
         Text(
-            text = secondsToMMSS((curPercentage.value * number).toInt()),
+            text = secondsToMMSS(number),
             color = Color.White,
             fontSize = fontSize,
             style = TextStyle(fontFamily = Avenir_regular)

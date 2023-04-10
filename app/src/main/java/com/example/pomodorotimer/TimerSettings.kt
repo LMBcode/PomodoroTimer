@@ -1,5 +1,8 @@
 package com.example.pomodorotimer
 
+import android.annotation.SuppressLint
+import android.content.SharedPreferences
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,6 +18,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.rememberNavController
+import com.example.pomodorotimer.data.DefaultPreferences
+import com.example.pomodorotimer.data.Preferences
+import com.example.pomodorotimer.presentation.CountDownViewModel
+import com.example.pomodorotimer.presentation.TimerViewModel
 import com.example.pomodorotimer.ui.theme.Avenir_bold
 import com.example.pomodorotimer.ui.theme.Avenir_regular
 import com.example.pomodorotimer.ui.theme.lightPurple
@@ -22,28 +32,60 @@ import com.example.pomodorotimer.ui.theme.normalPurple
 
 
 @Composable
-fun TimerSettings(){
-
+fun TimerSettings(viewModel: TimerViewModel = hiltViewModel(), countDownViewModel: CountDownViewModel = viewModel(), onClick : () -> Unit
+) {
     val spacing = LocalSpacing.current
+    val navController = rememberNavController()
 
-    Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    var focusTime by remember { mutableStateOf(25) }
+    var shortBreak by remember { mutableStateOf(5) }
+    var longBreak by remember { mutableStateOf(15) }
+    val defaultTimer = viewModel.getTimer()  * 60 // Timer is in minutes , basically if timerViewModel.getTimer is equal to 25 , we should convert 25 minutes into seconds
 
-        Text(text = "Add a new Timer", style = TextStyle(fontFamily = Avenir_bold, color = Color.White, fontSize = 20.sp), modifier = Modifier.padding(top = spacing.spaceMedium))
+    Column(
+        modifier = Modifier.padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
 
-        Spacer(modifier = Modifier.padding(vertical = spacing.spaceLarge) )
+        Text(
+            text = "Add a new Timer",
+            style = TextStyle(fontFamily = Avenir_bold, color = Color.White, fontSize = 20.sp),
+            modifier = Modifier.padding(top = spacing.spaceMedium)
+        )
 
-        RowTimer(text = "Focus Time", initialTime = "20 min")
+        Spacer(modifier = Modifier.padding(vertical = spacing.spaceLarge))
 
-        RowTimer(text = "Short Break", initialTime = "5 min")
+        RowTimer(text = "Focus Time", initialTime = "${viewModel.getTimer()} min"){ selectedTime ->
+            focusTime = selectedTime
+        }
 
-        RowTimer(text = "Long Break", initialTime = "15 min")
+        RowTimer(text = "Short Break", initialTime = "${viewModel.getTimerShort()} min"){ selectedTime ->
+            shortBreak = selectedTime
+        }
 
+        RowTimer(text = "Long Break", initialTime = "${viewModel.getTimerLong()} min"){ selectedTime ->
+            longBreak = selectedTime
+        }
+
+        Button(onClick = {
+            onClick()
+            viewModel.saveTimer(focusTime)
+            viewModel.saveShortBreak(shortBreak)
+            viewModel.saveLongBreak(longBreak)
+            countDownViewModel.resetCountdown(defaultTimer)
+
+            Log.d("VALUES" , "Saved Values - Focus Time: ${viewModel.getTimer()}, Short Break: ${viewModel.getTimerShort()}, Long Break: ${viewModel.getTimerLong()}")
+
+        }) {
+            Text(text = "Save")
+        }
     }
 }
 
 
+
 @Composable
-fun RowTimer(text : String, initialTime : String){
+fun RowTimer(text : String, initialTime : String,onTimeSelected: (Int) -> Unit){
 
 
     var expanded by remember {
@@ -103,6 +145,8 @@ fun RowTimer(text : String, initialTime : String){
                     ) {
                         listItems.forEach { item ->
                             DropdownMenuItem(onClick = {
+                                onTimeSelected(item)
+
                                 // Update the selected value and close the dropdown
                                 time = "$item min"
                                 expanded = false

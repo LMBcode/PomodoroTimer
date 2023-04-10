@@ -19,7 +19,13 @@ fun BottomNavGraph(navController: NavHostController) {
             TimerScreen()
         }
         composable(route = BottomNavRoute.TimerSettings.route) {
-            TimerSettings()
+            TimerSettings(
+                onClick = {navController.navigate(
+                    BottomNavRoute.TimerScreen.route
+                )
+
+                }
+            )
         }
         composable(route = BottomNavRoute.Summary.route) {
             TimerSummary()
